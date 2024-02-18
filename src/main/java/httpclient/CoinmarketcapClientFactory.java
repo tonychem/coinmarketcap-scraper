@@ -12,6 +12,10 @@ import java.util.List;
 import java.util.Queue;
 import java.util.stream.Collectors;
 
+/**
+ * Класс-фабрика http-клиентов для доступа к рынку. Содержит информацию об url-адресах рынка, очередь http-клиентов,
+ * и набор методов для управления сущностями клиентов.
+ */
 public class CoinmarketcapClientFactory {
     private final Queue<CoinmarketcapClient> clientQueue;
     private static final String DEFAULT_API_HOST = "https://pro-api.coinmarketcap.com";
@@ -28,10 +32,14 @@ public class CoinmarketcapClientFactory {
         clientQueue = this.credentials.stream()
                 .map(credential -> new CoinmarketcapClient(credential,
                         DEFAULT_API_HOST + DEFAULT_LATEST_QUOTE_UPDATES_URL,
-                        this.generateObjectMapper(), this.generateJsonPathConfiguration(), this))
+                        this.generateObjectMapper(), this.generateJsonPathConfiguration()))
                 .collect(Collectors.toCollection(LinkedList::new));
     }
 
+    /**
+     * Возвращает объект клиента из пула клиентов.
+     * @return Рыночный клиент
+     */
     public CoinmarketcapClient getAvailableClient() {
         if (clientQueue.isEmpty()) {
             throw new ClientPoolEmptyException("Currently no clients are available");
@@ -39,10 +47,9 @@ public class CoinmarketcapClientFactory {
         return clientQueue.poll();
     }
 
-    protected void reviveClient(CoinmarketcapClient client) {
-        clientQueue.offer(client);
-    }
-
+    /**
+     * @return Настроенный объект jackson маппера для работы с новым Time API
+     */
     protected ObjectMapper generateObjectMapper() {
         ObjectMapper objectMapper = new ObjectMapper();
         JavaTimeModule javaTimeModule = new JavaTimeModule();
@@ -50,6 +57,9 @@ public class CoinmarketcapClientFactory {
         return objectMapper;
     }
 
+    /**
+     * @return Возвращает настроенный JsonPath конфигуратор для точного парсинга json нод.
+     */
     protected Configuration generateJsonPathConfiguration() {
         return Configuration.builder()
                 .jsonProvider(new JacksonJsonNodeJsonProvider())

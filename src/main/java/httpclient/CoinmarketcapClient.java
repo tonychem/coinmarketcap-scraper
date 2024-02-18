@@ -17,46 +17,61 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
-public class CoinmarketcapClient implements AutoCloseable {
+/**
+ * Реализация клиента рынка.
+ */
+
+public class CoinmarketcapClient {
 
     private final Credential credential;
     private final String baseUri;
-
-    private final CoinmarketcapClientFactory callbackFactory;
-
     private final HttpClient httpClient;
 
     private final ObjectMapper objectMapper;
 
     private final Configuration jsonPathConfiguration;
 
-    private boolean isClosed = false;
 
     protected CoinmarketcapClient(Credential credential, String baseUri,
                                   ObjectMapper objectMapper,
-                                  Configuration jsonPathConfiguration,
-                                  CoinmarketcapClientFactory callbackFactory) {
+                                  Configuration jsonPathConfiguration) {
         this.credential = credential;
         this.baseUri = baseUri;
         this.objectMapper = objectMapper;
-        this.callbackFactory = callbackFactory;
         this.jsonPathConfiguration = jsonPathConfiguration;
         httpClient = HttpClient.newBuilder().build();
     }
 
     //TODO: add 4xx, 5xx response handling
+
+    /**
+     * Методж возвращает список информации о криптовалюте по заданному запросу.
+     * @param query динамический запрос
+     * @return Список информации о криптовалютах, согласно переданному динамическому запросу.
+     */
     public List<CryptocurrencyInfo> getCurrencyInfo(DynamicParameterQuery query) {
         try {
             HttpRequest request = createRequest(query);
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-            return parseCryptocurrencyInfoList(response.body());
+
+            if (response.statusCode() == 200) {
+                return parseCryptocurrencyInfoList(response.body());
+            }
+
+            return Collections.emptyList();
         } catch (URISyntaxException | IOException | InterruptedException e) {
             throw new RuntimeException(e);
         }
     }
 
+    /**
+     * Вспомогательный метод для парсинга json строки.
+     * @param json в формате строки
+     * @return Список информации о криптовалютах
+     */
     private List<CryptocurrencyInfo> parseCryptocurrencyInfoList(String json) throws JsonProcessingException {
         ArrayNode result = JsonPath
                 .using(jsonPathConfiguration)
@@ -74,6 +89,11 @@ public class CoinmarketcapClient implements AutoCloseable {
         return infos;
     }
 
+    /**
+     * Вспомогательный метод для создания объекта HttpRequest-a на основе кастомного динамического запроса
+     * @param query динамический запрос
+     * @return
+     */
     private HttpRequest createRequest(DynamicParameterQuery query) throws MalformedURLException, URISyntaxException {
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(baseUri + query.getQuery()))
@@ -83,15 +103,5 @@ public class CoinmarketcapClient implements AutoCloseable {
                 .build();
 
         return request;
-    }
-
-
-    @Override
-    public void close() throws Exception {
-        if (isClosed) {
-            throw new IllegalStateException("Client was already closed");
-        }
-        isClosed = true;
-        callbackFactory.reviveClient(this);
     }
 }

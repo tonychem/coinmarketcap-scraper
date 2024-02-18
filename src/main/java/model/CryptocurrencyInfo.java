@@ -9,6 +9,9 @@ import lombok.ToString;
 
 import java.time.LocalDateTime;
 
+/**
+ * Информация о криптовалюте, содержащая рыночные метоаданные + последнюю информацию о стоимости валюты
+ */
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Getter
 @Setter

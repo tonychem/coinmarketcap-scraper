@@ -3,6 +3,9 @@ package httpclient;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Объект, который содержит строковое представление параметров запроса
+ */
 public class DynamicParameterQuery {
 
     private final String query;

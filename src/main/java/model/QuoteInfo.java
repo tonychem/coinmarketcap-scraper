@@ -10,6 +10,9 @@ import lombok.ToString;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+/**
+ * Последняя информация о стоимости валюты + изменения за периоды
+ */
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Getter
 @Setter
