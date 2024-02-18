@@ -1,4 +1,4 @@
-package httpclient.exception;
+package httpclient;
 
 /**
  * Исключение, которое возникает при попытке получить новый клиент из пустого пула

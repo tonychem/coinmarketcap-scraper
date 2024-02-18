@@ -1,4 +1,4 @@
-package httpclient.exception;
+package exception;
 
 public class MinuteApiRateLimitExceededException extends ApiRateLimitExceededException {
     public MinuteApiRateLimitExceededException() {
