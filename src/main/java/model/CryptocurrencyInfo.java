@@ -3,10 +3,16 @@ package model;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 
 import java.time.LocalDateTime;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
+@Getter
+@Setter
+@ToString
 public class CryptocurrencyInfo {
 
     @JsonProperty("id")
@@ -25,7 +31,7 @@ public class CryptocurrencyInfo {
     @JsonFormat(shape = JsonFormat.Shape.NUMBER)
     private Boolean isActive;
 
-    @JsonProperty("fiat")
+    @JsonProperty("is_fiat")
     @JsonFormat(shape = JsonFormat.Shape.NUMBER)
     private Boolean isFiat;
 

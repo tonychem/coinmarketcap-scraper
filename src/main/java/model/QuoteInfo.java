@@ -3,11 +3,17 @@ package model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
+@Getter
+@Setter
+@ToString
 public class QuoteInfo {
     @JsonProperty("price")
     private BigDecimal price;
@@ -24,6 +30,6 @@ public class QuoteInfo {
     @JsonProperty(value = "percent_change_30d")
     private BigDecimal monthlyPriceChangeInPercent;
 
-    @JsonProperty(value = " last_updated")
+    @JsonProperty(value = "last_updated")
     private LocalDateTime lastUpdated;
 }
