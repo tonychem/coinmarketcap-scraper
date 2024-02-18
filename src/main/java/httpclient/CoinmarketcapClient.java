@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.jayway.jsonpath.Configuration;
 import com.jayway.jsonpath.JsonPath;
+import httpclient.exception.*;
 import model.CryptocurrencyInfo;
 import model.QuoteInfo;
 
@@ -48,17 +49,36 @@ public class CoinmarketcapClient {
     //TODO: add 4xx, 5xx response handling
 
     /**
-     * Методж возвращает список информации о криптовалюте по заданному запросу.
+     * Метод возвращает список информации о криптовалюте по заданному запросу.
+     *
      * @param query динамический запрос
      * @return Список информации о криптовалютах, согласно переданному динамическому запросу.
      */
-    public List<CryptocurrencyInfo> getCurrencyInfo(DynamicParameterQuery query) {
+    public List<CryptocurrencyInfo> getCurrencyInfo(DynamicParameterQuery query) throws ApiRateLimitExceededException {
         try {
             HttpRequest request = createRequest(query);
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
-            if (response.statusCode() == 200) {
+            int statusCode = response.statusCode();
+
+            if (statusCode == 200) {
                 return parseCryptocurrencyInfoList(response.body());
+            } else if (statusCode == 429) {
+                JsonNode root = objectMapper.readTree(response.body());
+                int fineStatusCode = root.at("/status/error_code").asInt();
+
+                if (fineStatusCode == 1008) {
+                    throw new MinuteApiRateLimitExceededException("Minute rate limit exceeded");
+                } else if (fineStatusCode == 1009) {
+                    throw new DailyApiRateLimitExceededException("Daily rate limit exceeded");
+
+                } else if (fineStatusCode == 1010) {
+                    throw new MonthlyApiRateLimitExceededException("Monthly rate limit exceeded");
+
+                } else if (fineStatusCode == 1011) {
+                    throw new IPApiRateLimitExceededException("IP rate limit exceeded");
+
+                }
             }
 
             return Collections.emptyList();
@@ -69,6 +89,7 @@ public class CoinmarketcapClient {
 
     /**
      * Вспомогательный метод для парсинга json строки.
+     *
      * @param json в формате строки
      * @return Список информации о криптовалютах
      */
@@ -91,6 +112,7 @@ public class CoinmarketcapClient {
 
     /**
      * Вспомогательный метод для создания объекта HttpRequest-a на основе кастомного динамического запроса
+     *
      * @param query динамический запрос
      * @return
      */
