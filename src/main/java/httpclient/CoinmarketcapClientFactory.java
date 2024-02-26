@@ -1,10 +1,6 @@
 package httpclient;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.jayway.jsonpath.Configuration;
-import com.jayway.jsonpath.spi.json.JacksonJsonNodeJsonProvider;
-import com.jayway.jsonpath.spi.mapper.JacksonMappingProvider;
+import model.Credential;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -32,12 +28,13 @@ public class CoinmarketcapClientFactory {
         clientQueue = this.credentials.stream()
                 .map(credential -> new CoinmarketcapClient(credential,
                         DEFAULT_API_HOST + DEFAULT_LATEST_QUOTE_UPDATES_URL,
-                        this.generateObjectMapper(), this.generateJsonPathConfiguration()))
+                        new DefaultMarketResponseParser()))
                 .collect(Collectors.toCollection(LinkedList::new));
     }
 
     /**
      * Возвращает объект клиента из пула клиентов.
+     *
      * @return Рыночный клиент
      */
     public CoinmarketcapClient getAvailableClient() {
@@ -45,25 +42,5 @@ public class CoinmarketcapClientFactory {
             throw new ClientPoolEmptyException("Currently no clients are available");
         }
         return clientQueue.poll();
-    }
-
-    /**
-     * @return Настроенный объект jackson маппера для работы с новым Time API
-     */
-    protected ObjectMapper generateObjectMapper() {
-        ObjectMapper objectMapper = new ObjectMapper();
-        JavaTimeModule javaTimeModule = new JavaTimeModule();
-        objectMapper.registerModule(javaTimeModule);
-        return objectMapper;
-    }
-
-    /**
-     * @return Возвращает настроенный JsonPath конфигуратор для точного парсинга json нод.
-     */
-    protected Configuration generateJsonPathConfiguration() {
-        return Configuration.builder()
-                .jsonProvider(new JacksonJsonNodeJsonProvider())
-                .mappingProvider(new JacksonMappingProvider())
-                .build();
     }
 }

@@ -1,4 +1,4 @@
-package httpclient;
+package model;
 
 /**
  * Инкапсулированный API-токен клиента рынка.
