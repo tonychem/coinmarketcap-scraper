@@ -1,6 +1,5 @@
 package httpclient;
 
-import model.DynamicParameterQuery;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;

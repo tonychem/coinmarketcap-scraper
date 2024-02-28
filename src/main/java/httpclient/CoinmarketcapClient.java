@@ -1,19 +1,15 @@
 package httpclient;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import exception.ApiRateLimitExceededException;
 import model.Credential;
 import model.CryptocurrencyInfo;
-import model.DynamicParameterQuery;
 
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.Collections;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
 /**
  * Реализация клиента рынка.
@@ -22,15 +18,27 @@ import java.util.List;
 public class CoinmarketcapClient {
 
     private final Credential credential;
-    private final String baseUri;
-    private final HttpClient httpClient;
+
+    private final GenericCoinmarketcapHttpClient httpClient;
+
     private final DefaultMarketResponseParser parser;
 
-    protected CoinmarketcapClient(Credential credential, String baseUri, DefaultMarketResponseParser parser) {
+    private final StatisticsManager statisticsManager;
+
+    private final Timer timer = new Timer(true);
+
+    private static final long DELAY_BEFORE_FIRST_STATISTICS_UPDATE_MILLIS = 1_000 * 60 * 15; //15 minutes
+
+    private static final long STATISTICS_UPDATE_EVENT_PERIOD_MILLIS = 1_000 * 60 * 60; //every hour
+
+    private static final int QUERIES_PER_CREDIT = 100;
+
+    protected CoinmarketcapClient(Credential credential, String resourceURL, DefaultMarketResponseParser parser) {
         this.credential = credential;
-        this.baseUri = baseUri;
         this.parser = parser;
-        httpClient = HttpClient.newBuilder().build();
+        this.statisticsManager = new StatisticsManager(credential);
+        httpClient = new GenericCoinmarketcapHttpClient(resourceURL);
+        scheduleStatisticsRefreshEvent();
     }
 
     //TODO: add 4xx, 5xx response handling
@@ -43,37 +51,33 @@ public class CoinmarketcapClient {
      */
     public List<CryptocurrencyInfo> getCurrencyInfo(DynamicParameterQuery query) throws ApiRateLimitExceededException {
         try {
-            HttpRequest request = createRequest(query);
-            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-
+            HttpResponse<String> response = httpClient.executeGetRequest(query, credential);
             int statusCode = response.statusCode();
 
             if (statusCode == 200) {
-                return parser.parseCurrencyInfoList(response.body());
+                List<CryptocurrencyInfo> infosList = parser.parseCurrencyInfoList(response.body());
+                int queriedParams = query.getQueriedParams();
+                statisticsManager.decrementCreditCount(queriedParams / QUERIES_PER_CREDIT + 1);
+                return infosList;
             } else if (statusCode == 429) {
                 parser.handleRateLimitViolation(response.body());
             }
 
             return Collections.emptyList();
-        } catch (URISyntaxException | IOException | InterruptedException e) {
+        } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
     }
 
-    /**
-     * Вспомогательный метод для создания объекта HttpRequest-a на основе кастомного динамического запроса
-     *
-     * @param query динамический запрос
-     * @return
-     */
-    private HttpRequest createRequest(DynamicParameterQuery query) throws MalformedURLException, URISyntaxException {
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(baseUri + query.getQuery()))
-                .GET()
-                .header("Accept", "application/json")
-                .header("X-CMC_PRO_API_KEY", credential.apiToken())
-                .build();
+    private void scheduleStatisticsRefreshEvent() {
+        TimerTask refreshTask = new TimerTask() {
+            @Override
+            public void run() {
+                statisticsManager.refreshStatistics();
+            }
+        };
 
-        return request;
+        timer.scheduleAtFixedRate(refreshTask, DELAY_BEFORE_FIRST_STATISTICS_UPDATE_MILLIS,
+                STATISTICS_UPDATE_EVENT_PERIOD_MILLIS);
     }
 }

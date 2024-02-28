@@ -45,8 +45,9 @@ public class DefaultMarketResponseParser {
         List<CryptocurrencyInfo> infos = new ArrayList<>();
 
         for (JsonNode node : result) {
-            CryptocurrencyInfo info = objectMapper.readValue(node.toString(), CryptocurrencyInfo.class);
-            QuoteInfo quoteInfo = objectMapper.readValue(node.findPath(BASE_FIAT_CURRENCY).toString(), QuoteInfo.class);
+            JsonNode internalArrayNode = node.get(0);
+            CryptocurrencyInfo info = objectMapper.readValue(internalArrayNode.toString(), CryptocurrencyInfo.class);
+            QuoteInfo quoteInfo = objectMapper.readValue(internalArrayNode.findPath(BASE_FIAT_CURRENCY).toString(), QuoteInfo.class);
             info.setQuoteInfo(quoteInfo);
             infos.add(info);
         }

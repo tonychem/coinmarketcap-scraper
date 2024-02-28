@@ -13,9 +13,10 @@ import java.util.stream.Collectors;
  * и набор методов для управления сущностями клиентов.
  */
 public class CoinmarketcapClientFactory {
+    private static final String LATEST_QUOTE_UPDATES_URL = "/v2/cryptocurrency/quotes/latest?";
+
     private final Queue<CoinmarketcapClient> clientQueue;
-    private static final String DEFAULT_API_HOST = "https://pro-api.coinmarketcap.com";
-    private static final String DEFAULT_LATEST_QUOTE_UPDATES_URL = "/v2/cryptocurrency/quotes/latest?";
+
     private final List<Credential> credentials;
 
     public CoinmarketcapClientFactory(List<Credential> credentials) throws IllegalStateException {
@@ -25,9 +26,11 @@ public class CoinmarketcapClientFactory {
 
         this.credentials = new ArrayList<>(credentials);
 
+        UserUsageStatisticGatherer userUsageStatisticGatherer = new UserUsageStatisticGatherer();
+
         clientQueue = this.credentials.stream()
                 .map(credential -> new CoinmarketcapClient(credential,
-                        DEFAULT_API_HOST + DEFAULT_LATEST_QUOTE_UPDATES_URL,
+                        LATEST_QUOTE_UPDATES_URL,
                         new DefaultMarketResponseParser()))
                 .collect(Collectors.toCollection(LinkedList::new));
     }
