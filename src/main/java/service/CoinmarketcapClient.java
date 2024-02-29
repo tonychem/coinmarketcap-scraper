@@ -1,8 +1,9 @@
-package httpclient;
+package service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import exception.ApiRateLimitExceededException;
-import model.Credential;
+import httpclient.DynamicParameterQuery;
+import httpclient.GenericCoinmarketcapHttpClient;
 import model.CryptocurrencyInfo;
 
 import java.net.http.HttpResponse;

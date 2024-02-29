@@ -19,6 +19,7 @@
         <assertj.version>3.25.3</assertj.version>
         <json-path.version>2.9.0</json-path.version>
         <snakeyml.version>2.2</snakeyml.version>
+        <elasticsearch.version>8.12.1</elasticsearch.version>
     </properties>
 
     <dependencies>
@@ -51,6 +52,12 @@
             <groupId>org.yaml</groupId>
             <artifactId>snakeyaml</artifactId>
             <version>${snakeyml.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>co.elastic.clients</groupId>
+            <artifactId>elasticsearch-java</artifactId>
+            <version>${elasticsearch.version}</version>
         </dependency>
 
         <dependency>

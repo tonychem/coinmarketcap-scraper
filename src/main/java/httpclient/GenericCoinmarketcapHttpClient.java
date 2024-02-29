@@ -1,6 +1,6 @@
 package httpclient;
 
-import model.Credential;
+import service.Credential;
 
 import java.net.URI;
 import java.net.http.HttpClient;

@@ -1,6 +1,4 @@
-package httpclient;
-
-import model.Credential;
+package service;
 
 import java.util.ArrayList;
 import java.util.LinkedList;

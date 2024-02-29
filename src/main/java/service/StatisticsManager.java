@@ -1,9 +1,8 @@
-package httpclient;
+package service;
 
 import exception.ApiRateLimitExceededException;
 import exception.MinuteApiRateLimitExceededException;
 import exception.MonthlyApiRateLimitExceededException;
-import model.Credential;
 import model.CreditsInfo;
 import model.MinuteUsage;
 import model.UserUsageStatistics;

@@ -1,8 +1,9 @@
-package httpclient;
+package service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import model.Credential;
+import httpclient.DynamicParameterQuery;
+import httpclient.GenericCoinmarketcapHttpClient;
 import model.UserUsageStatistics;
 
 import java.net.http.HttpResponse;
