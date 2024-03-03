@@ -1,10 +1,10 @@
-package service;
+package client;
 
+import client.exception.ApiRateLimitExceededException;
+import client.network.GenericCoinmarketcapHttpClient;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import exception.ApiRateLimitExceededException;
-import httpclient.DynamicParameterQuery;
-import httpclient.GenericCoinmarketcapHttpClient;
 import model.CryptocurrencyInfo;
+import model.UserUsageStatistics;
 
 import java.net.http.HttpResponse;
 import java.util.Collections;
@@ -28,9 +28,9 @@ public class CoinmarketcapClient {
 
     private final Timer timer = new Timer(true);
 
-    private static final long DELAY_BEFORE_FIRST_STATISTICS_UPDATE_MILLIS = 1_000 * 60 * 15; //15 minutes
+    private static final long DELAY_BEFORE_FIRST_STATISTICS_UPDATE_MILLIS = 1_000 * 60 * 15;
 
-    private static final long STATISTICS_UPDATE_EVENT_PERIOD_MILLIS = 1_000 * 60 * 60; //every hour
+    private static final long STATISTICS_UPDATE_EVENT_PERIOD_MILLIS = 1_000 * 60 * 60;
 
     private static final int QUERIES_PER_CREDIT = 100;
 
@@ -68,6 +68,10 @@ public class CoinmarketcapClient {
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public UserUsageStatistics getUserUsageStatistics() {
+        return statisticsManager.getUsageStatistics();
     }
 
     private void scheduleStatisticsRefreshEvent() {

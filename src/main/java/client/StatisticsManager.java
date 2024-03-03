@@ -1,8 +1,8 @@
-package service;
+package client;
 
-import exception.ApiRateLimitExceededException;
-import exception.MinuteApiRateLimitExceededException;
-import exception.MonthlyApiRateLimitExceededException;
+import client.exception.ApiRateLimitExceededException;
+import client.exception.MinuteApiRateLimitExceededException;
+import client.exception.MonthlyApiRateLimitExceededException;
 import model.CreditsInfo;
 import model.MinuteUsage;
 import model.UserUsageStatistics;
@@ -83,5 +83,9 @@ public class StatisticsManager {
     public synchronized void refreshStatistics() {
         usageStatistics = userUsageStatisticGatherer.getStatistics(credential);
         lastUpdated = usageStatistics.getCreatedAt();
+    }
+
+    public synchronized UserUsageStatistics getUsageStatistics() {
+        return usageStatistics;
     }
 }

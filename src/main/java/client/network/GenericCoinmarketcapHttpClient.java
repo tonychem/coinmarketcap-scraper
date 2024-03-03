@@ -1,6 +1,7 @@
-package httpclient;
+package client.network;
 
-import service.Credential;
+import client.Credential;
+import client.DynamicParameterQuery;
 
 import java.net.URI;
 import java.net.http.HttpClient;

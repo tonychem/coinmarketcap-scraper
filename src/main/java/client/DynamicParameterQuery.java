@@ -1,4 +1,4 @@
-package httpclient;
+package client;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,17 +16,17 @@ public class DynamicParameterQuery {
         this.queriedParams = queriedParams;
     }
 
-    public static DynamicParameterQueryBuilder builder() {
-        return new DynamicParameterQueryBuilder();
+    public static QueryBuilder builder() {
+        return new QueryBuilder();
     }
 
-    public static class DynamicParameterQueryBuilder {
+    public static class QueryBuilder {
         private List<String> idList;
         private List<String> slugList;
 
         private List<String> symbolList;
 
-        public DynamicParameterQueryBuilder id(String id) {
+        public QueryBuilder id(String id) {
             if (idList == null) {
                 idList = new ArrayList<>();
             }
@@ -34,7 +34,7 @@ public class DynamicParameterQuery {
             return this;
         }
 
-        public DynamicParameterQueryBuilder slug(String slug) {
+        public QueryBuilder slug(String slug) {
             if (slugList == null) {
                 slugList = new ArrayList<>();
             }
@@ -42,7 +42,7 @@ public class DynamicParameterQuery {
             return this;
         }
 
-        public DynamicParameterQueryBuilder symbol(String symbol) {
+        public QueryBuilder symbol(String symbol) {
             if (symbolList == null) {
                 symbolList = new ArrayList<>();
             }

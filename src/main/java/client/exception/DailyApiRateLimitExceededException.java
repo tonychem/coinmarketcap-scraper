@@ -1,4 +1,4 @@
-package exception;
+package client.exception;
 
 public class DailyApiRateLimitExceededException extends ApiRateLimitExceededException {
     public DailyApiRateLimitExceededException() {

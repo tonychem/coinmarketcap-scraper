@@ -6,6 +6,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Map;
 
+/**
+ * Утилитарный класс для выгрузки всех свойств из yaml-файла
+ */
 public class PropertyFileReader {
     public static Map<String, Object> load(String path) {
         Yaml yaml = new Yaml();
