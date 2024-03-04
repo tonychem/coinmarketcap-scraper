@@ -1,0 +1,8 @@
+credentials:
+  - "<CRED1>"
+  - "<CRED2>"
+  - "<CRED3>"
+task:
+  symbols:
+    - "<SYMBOL1>"
+    - "<SYMBOL2>"

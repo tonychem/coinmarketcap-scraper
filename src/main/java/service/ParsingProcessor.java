@@ -55,6 +55,11 @@ public class ParsingProcessor {
         if (hasStarted) {
             throw new IllegalStateException("Already started");
         }
+
+        if (symbols == null || symbols.length == 0) {
+            throw new IllegalStateException("Symbol list is empty or null");
+        }
+
         TimerTask timerTask = new TimerTask() {
             @Override
             public void run() {
@@ -156,9 +161,12 @@ public class ParsingProcessor {
      * SYMBOLS_PER_CLIENT символов.
      * @param symbols список символов криптовалют
      */
-    private DynamicParameterQuery[] queryBySymbols(String... symbols) {
+    public DynamicParameterQuery[] queryBySymbols(String... symbols) {
+        int dynamicQueryArraySize = symbols.length % SYMBOLS_PER_CLIENT == 0 ?
+                symbols.length / SYMBOLS_PER_CLIENT : symbols.length / SYMBOLS_PER_CLIENT + 1;
+
         DynamicParameterQuery.QueryBuilder[] queryBuilderArray
-                = new DynamicParameterQuery.QueryBuilder[symbols.length / SYMBOLS_PER_CLIENT + 1];
+                = new DynamicParameterQuery.QueryBuilder[dynamicQueryArraySize];
         DynamicParameterQuery[] queryArray = new DynamicParameterQuery[queryBuilderArray.length];
 
         for (int i = 0; i < queryBuilderArray.length; i++) {
