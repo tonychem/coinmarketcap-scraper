@@ -1,6 +1,7 @@
 package model;
 
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
@@ -8,7 +9,7 @@ import lombok.Setter;
 import lombok.ToString;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 
 /**
  * Последняя информация о стоимости валюты + изменения за периоды
@@ -34,5 +35,6 @@ public class QuoteInfo {
     private BigDecimal monthlyPriceChangeInPercent;
 
     @JsonProperty(value = "last_updated")
-    private LocalDateTime lastUpdated;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ssZZ")
+    private OffsetDateTime lastUpdated;
 }

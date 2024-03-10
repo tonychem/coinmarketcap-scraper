@@ -7,7 +7,9 @@ import model.CreditsInfo;
 import model.MinuteUsage;
 import model.UserUsageStatistics;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 
 public class StatisticsManager {
@@ -19,7 +21,7 @@ public class StatisticsManager {
 
     private volatile UserUsageStatistics usageStatistics;
 
-    private LocalDateTime lastUpdated;
+    private OffsetDateTime lastUpdated;
 
     public StatisticsManager(Credential credential) {
         this.userUsageStatisticGatherer = new UserUsageStatisticGatherer();
@@ -34,7 +36,7 @@ public class StatisticsManager {
     }
 
     private void manageMinuteRequestCounter() throws MinuteApiRateLimitExceededException {
-        LocalDateTime currentMoment = LocalDateTime.now();
+        OffsetDateTime currentMoment = Instant.now().atOffset(ZoneOffset.UTC);
 
         if (usageStatistics.getCurrentMinuteUsage().getRequestsLeft() == 0) {
             throw new MinuteApiRateLimitExceededException("Exceeded minute api rate limit!");
@@ -55,7 +57,7 @@ public class StatisticsManager {
     }
 
     private void manageMonthlyCreditCounter(int credits) throws ApiRateLimitExceededException {
-        LocalDateTime currentMoment = LocalDateTime.now();
+        OffsetDateTime currentMoment = Instant.now().atOffset(ZoneOffset.UTC);
 
         if (usageStatistics.getCurrentMonthUsage().getCreditsLeft() == 0) {
             throw new MonthlyApiRateLimitExceededException("Exceeded minute api rate limit!");

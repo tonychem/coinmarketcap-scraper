@@ -7,7 +7,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 
 /**
  * Информация о криптовалюте, содержащая рыночные метоаданные + последнюю информацию о стоимости валюты
@@ -42,7 +42,8 @@ public class CryptocurrencyInfo {
     private Long cmcRank;
 
     @JsonProperty("last_updated")
-    private LocalDateTime lastUpdated;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ssZZ")
+    private OffsetDateTime lastUpdated;
 
     @JsonProperty("quote")
     private QuoteInfo quoteInfo;

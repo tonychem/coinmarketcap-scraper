@@ -6,7 +6,9 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Getter
@@ -19,5 +21,5 @@ public class UserUsageStatistics {
     @JsonProperty("current_month")
     private CreditsInfo currentMonthUsage;
 
-    private final LocalDateTime createdAt = LocalDateTime.now();
+    private final OffsetDateTime createdAt = Instant.now().atOffset(ZoneOffset.UTC);
 }

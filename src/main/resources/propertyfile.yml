@@ -1,3 +1,8 @@
+elasticsearch:
+  scheme: "http"
+  host: "localhost"
+  port: 9200
+
 credentials:
   - "<CRED1>"
   - "<CRED2>"
