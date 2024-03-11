@@ -1,11 +1,13 @@
 package repository;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
-import co.elastic.clients.elasticsearch._types.FieldValue;
 import co.elastic.clients.elasticsearch._types.SortOptions;
 import co.elastic.clients.elasticsearch._types.SortOrder;
 import co.elastic.clients.elasticsearch._types.aggregations.AverageAggregation;
-import co.elastic.clients.elasticsearch._types.query_dsl.*;
+import co.elastic.clients.elasticsearch._types.query_dsl.BoolQuery;
+import co.elastic.clients.elasticsearch._types.query_dsl.MatchQuery;
+import co.elastic.clients.elasticsearch._types.query_dsl.Query;
+import co.elastic.clients.elasticsearch._types.query_dsl.RangeQuery;
 import co.elastic.clients.elasticsearch.core.IndexResponse;
 import co.elastic.clients.elasticsearch.core.SearchResponse;
 import co.elastic.clients.elasticsearch.core.search.Hit;
@@ -16,7 +18,6 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -46,13 +47,21 @@ public class CryptocurrencyInfoRepository {
      * Получить среднее значение криптовалюты за период.
      *
      * @param indexName имя индекса, в котором происходит поиск
+     * @param symbol    тикер криптовалюты
      * @param fromIncl  дата (вкл.), с которой происходит поиск
      * @param toIncl    дата (вкл.), до которой происходит поиск
      * @return информация о средней величине
      */
-    public Averages getAveragePriceForPeriod(String indexName, OffsetDateTime fromIncl, OffsetDateTime toIncl)
+    public Averages getAveragePriceForPeriod(String indexName, String symbol, OffsetDateTime fromIncl,
+                                             OffsetDateTime toIncl)
             throws IOException {
-        Query query = new Query.Builder()
+        Query symbolQuery = new Query.Builder()
+                .match(new MatchQuery.Builder()
+                        .field("symbol")
+                        .query(symbol)
+                        .build())
+                .build();
+        Query timeRangeQuery = new Query.Builder()
                 .range(new RangeQuery.Builder()
                         .field("last_updated")
                         .gte(JsonData.of(fromIncl.format(DEFAULT_FORMATTER)))
@@ -60,9 +69,14 @@ public class CryptocurrencyInfoRepository {
                         .build())
                 .build();
 
+        BoolQuery boolQuery = new BoolQuery.Builder()
+                .must(symbolQuery)
+                .filter(timeRangeQuery)
+                .build();
+
         SearchResponse<Void> aggregation = elasticsearchClient.search(
                 c -> c.index(indexName)
-                        .query(query)
+                        .query(queryBuilder -> queryBuilder.bool(boolQuery))
                         .aggregations("average-by-quote-price", a ->
                                 a.avg(new AverageAggregation.Builder()
                                         .field("quote.price")
@@ -78,52 +92,12 @@ public class CryptocurrencyInfoRepository {
      * Получить информацию о наибольшем изменении цены криптовалют за последние 24 часа.
      *
      * @param indexName индекс, в котором происходит поиск
-     * @param fromIncl  дата (вкл.), с которой происходит поиск максимального значения
-     * @param toIncl    дата (вкл.), до которой происходит поиск максимального значения
-     * @param symbols   список тикеров криптовалют, по которым происходит поиск
      */
-    public CryptocurrencyInfo getCurrencyWithMaxPriceChangeInLastDay(String indexName, OffsetDateTime fromIncl,
-                                                                     OffsetDateTime toIncl, String... symbols) throws IOException {
-        Query dateFilterQuery = Query.of(builder ->
-                builder.range(RangeQuery.of(
-                        rangeBuilder ->
-                                rangeBuilder
-                                        .field("last_updated")
-                                        .lte(JsonData.of(toIncl.format(DEFAULT_FORMATTER)))
-                                        .gte(JsonData.of(fromIncl.format(DEFAULT_FORMATTER)))
-
-                )));
-
-        TermsQuery.Builder termsQuery = new TermsQuery.Builder();
-
-        List<FieldValue> fieldValues = new ArrayList<>();
-
-        for (String symbol : symbols) {
-            FieldValue value = new FieldValue.Builder()
-                    .stringValue(symbol)
-                    .build();
-            fieldValues.add(value);
-        }
-
-        termsQuery.terms(TermsQueryField.of(
-                termsQueryBuilder -> termsQueryBuilder.value(fieldValues)
-        ));
-
-
-        termsQuery.field("symbol");
-
-        Query symbolFilterQuery = Query.of(builder ->
-                builder.terms(termsQuery.build())
-        );
-
-        BoolQuery boolQuery = new BoolQuery.Builder()
-                .filter(dateFilterQuery, symbolFilterQuery)
-                .build();
-
+    public CryptocurrencyInfo getCurrencyWithMaxPriceChangeInLastDay(String indexName) throws IOException {
         SortOptions sortOptions = SortOptions.of(
                 sortBuilder -> sortBuilder.field(
                         fieldSortBuilder -> fieldSortBuilder
-                                .field("quote.percent_change_24h")
+                                .field("last_updated")
                                 .order(SortOrder.Desc)
                 )
         );
@@ -132,8 +106,7 @@ public class CryptocurrencyInfoRepository {
                 searchRequest -> searchRequest
                         .index(indexName)
                         .size(1)
-                        .sort(sortOptions)
-                        .query(queryBuilder -> queryBuilder.bool(boolQuery)), CryptocurrencyInfo.class
+                        .sort(sortOptions), CryptocurrencyInfo.class
         );
 
         List<Hit<CryptocurrencyInfo>> queryResult = searchResponse.hits().hits();

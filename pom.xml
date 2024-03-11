@@ -13,6 +13,7 @@
         <maven.compiler.target>17</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <lombok.version>1.18.30</lombok.version>
+        <lombok.plugin.version>1.18.20.0</lombok.plugin.version>
         <jackson.version>2.16.1</jackson.version>
         <logback.version>1.5.0</logback.version>
         <junit-jupiter.version>5.10.2</junit-jupiter.version>
@@ -27,6 +28,13 @@
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <version>${lombok.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok-maven-plugin</artifactId>
+            <version>${lombok.plugin.version}</version>
             <scope>provided</scope>
         </dependency>
 
