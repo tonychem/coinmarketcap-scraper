@@ -22,7 +22,7 @@ public class CoinmarketcapClientPool {
 
     public CoinmarketcapClientPool(List<Credential> credentials) throws IllegalStateException {
         if (credentials == null || credentials.isEmpty()) {
-            throw new IllegalStateException("No user tokens were provided or provided list was empty");
+            throw new IllegalStateException("Список api-токенов пуст или null.");
         }
 
         this.credentials = new ArrayList<>(credentials);

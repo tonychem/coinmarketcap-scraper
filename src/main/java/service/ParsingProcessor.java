@@ -11,6 +11,8 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.*;
 
+import static utils.ApplicationConstantHolder.INDICES_NAME_FORMAT;
+
 /**
  * Центральный класс для управления загрузкой данных о криптовалютах из нескольких клиентов. Класс содержит пул
  * активных клиентов и методы для работы с ними.
@@ -55,11 +57,11 @@ public class ParsingProcessor {
      */
     public void start(String... symbols) {
         if (hasStarted) {
-            throw new IllegalStateException("Already started");
+            throw new IllegalStateException("Сервис уже запущен!");
         }
 
         if (symbols == null || symbols.length == 0) {
-            throw new IllegalStateException("Symbol list is empty or null");
+            throw new IllegalStateException("Список тикеров для отслеживания пуст или null.");
         }
 
         TimerTask parsingTask = new TimerTask() {
@@ -102,12 +104,10 @@ public class ParsingProcessor {
     }
 
     private void flushLatestResult() {
-        String indexPrefixPattern = "%s_%d_%d_%d";
-
         try {
             for (CryptocurrencyInfo info : resultList) {
                 OffsetDateTime infoLastUpdatedAt = info.getLastUpdated();
-                String currentIndex = String.format(indexPrefixPattern, info.getTicker().toLowerCase(), infoLastUpdatedAt.getYear(),
+                String currentIndex = String.format(INDICES_NAME_FORMAT, info.getTicker().toLowerCase(), infoLastUpdatedAt.getYear(),
                         infoLastUpdatedAt.getMonthValue(), infoLastUpdatedAt.getDayOfMonth());
 
                 if (!repositoryManager.checkIndexExist(currentIndex)) {
