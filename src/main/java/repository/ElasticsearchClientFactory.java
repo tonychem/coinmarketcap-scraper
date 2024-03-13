@@ -8,14 +8,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.apache.http.HttpHost;
 import org.elasticsearch.client.RestClient;
+import utils.entity.ElasticsearchDatasource;
 
 /**
  * Класс-фабрика для создания клиентов ES
  */
 public class ElasticsearchClientFactory {
-    private final ElasticsearchDataSource dataSource;
+    private final ElasticsearchDatasource dataSource;
 
-    public ElasticsearchClientFactory(ElasticsearchDataSource dataSource) {
+    public ElasticsearchClientFactory(ElasticsearchDatasource dataSource) {
         this.dataSource = dataSource;
     }
 

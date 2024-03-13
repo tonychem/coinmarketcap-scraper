@@ -1,11 +1,10 @@
 package service;
 
-import client.ClientTask;
-import client.CoinmarketcapClient;
-import client.CoinmarketcapClientPool;
-import client.DynamicParameterQuery;
 import model.CryptocurrencyInfo;
+import repository.RepositoryManager;
 
+import java.io.IOException;
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Timer;
@@ -18,6 +17,8 @@ import java.util.concurrent.*;
  */
 public class ParsingProcessor {
     private final CoinmarketcapClientPool clientPool;
+
+    private final RepositoryManager repositoryManager;
 
     private final ExecutorService executorService;
 
@@ -39,9 +40,9 @@ public class ParsingProcessor {
     private static final int TASK_REFRESH_PERIOD = 1_000 * 60;
 
 
-    public ParsingProcessor(CoinmarketcapClientPool clientPool) {
+    public ParsingProcessor(CoinmarketcapClientPool clientPool, RepositoryManager repositoryManager) {
         this.clientPool = clientPool;
-
+        this.repositoryManager = repositoryManager;
         executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors() / 2 + 1);
         resultList = new CopyOnWriteArrayList<>();
     }
@@ -49,6 +50,7 @@ public class ParsingProcessor {
     /**
      * Публичный метод, запускающий процесс сбора информации. Декорирует запуск таймера с набором инструкций
      * executeParsing
+     *
      * @param symbols список символов криптовалют
      */
     public void start(String... symbols) {
@@ -60,21 +62,29 @@ public class ParsingProcessor {
             throw new IllegalStateException("Symbol list is empty or null");
         }
 
-        TimerTask timerTask = new TimerTask() {
+        TimerTask parsingTask = new TimerTask() {
             @Override
             public void run() {
-                Thread.currentThread().setName("MAIN-PARSER-THREAD");
                 executeParsing(symbols);
             }
         };
 
-        timer.scheduleAtFixedRate(timerTask, 0, TASK_REFRESH_PERIOD);
+        TimerTask saverTask = new TimerTask() {
+            @Override
+            public void run() {
+                flushLatestResult();
+            }
+        };
+
+        timer.scheduleAtFixedRate(parsingTask, 0, TASK_REFRESH_PERIOD);
+        timer.scheduleAtFixedRate(saverTask, TASK_REFRESH_PERIOD / 2, TASK_REFRESH_PERIOD);
         hasStarted = true;
     }
 
     /**
      * Набор инструкций по запуску сбора информации. Перед каждым запуском происходит очистка списка загруженных данных и
      * проверка клиентов, чей месячный api лимит закончился.
+     *
      * @param symbols список символов криптовалют
      */
     private void executeParsing(String... symbols) {
@@ -91,12 +101,33 @@ public class ParsingProcessor {
         }
     }
 
+    private void flushLatestResult() {
+        String indexPrefixPattern = "%s_%d_%d_%d";
+
+        try {
+            for (CryptocurrencyInfo info : resultList) {
+                OffsetDateTime infoLastUpdatedAt = info.getLastUpdated();
+                String currentIndex = String.format(indexPrefixPattern, info.getTicker().toLowerCase(), infoLastUpdatedAt.getYear(),
+                        infoLastUpdatedAt.getMonthValue(), infoLastUpdatedAt.getDayOfMonth());
+
+                if (!repositoryManager.checkIndexExist(currentIndex)) {
+                    repositoryManager.createIndex(currentIndex);
+                }
+
+                repositoryManager.saveCryptocurrencyInfo(currentIndex, info);
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     /**
      * Метод раздает задания клиентам из пула. Для этого формируется массив динамических параметров запроса (по
      * SYMBOLS_PER_CLIENT в каждом) и рассматривается две ситуации: когда заданий больше, чем клиентов, и обратное. В первом случае
      * каждому клиенту дается еще 1 дополнительное задание. Для поддержания честности по отношению к клиентам, каждый клиент находится
      * в PriorityQueue, компарированной по количеству оставшихся месячных запросов. После отправки задания на клиент и списания кредитов,
      * клиент встает обратно в очередь.
+     *
      * @param symbols список символов криптовалют
      * @return
      */
@@ -159,6 +190,7 @@ public class ParsingProcessor {
     /**
      * Формирует динамические параметры запросов по заданному массиву символов криптовалют. В каждый запрос попадает не более
      * SYMBOLS_PER_CLIENT символов.
+     *
      * @param symbols список символов криптовалют
      */
     public DynamicParameterQuery[] queryBySymbols(String... symbols) {

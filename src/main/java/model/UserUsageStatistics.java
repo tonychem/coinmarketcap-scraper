@@ -8,7 +8,8 @@ import lombok.ToString;
 
 import java.time.Instant;
 import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
+
+import static utils.ApplicationConstantHolder.DEFAULT_ZONE_OFFSET;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Getter
@@ -21,5 +22,6 @@ public class UserUsageStatistics {
     @JsonProperty("current_month")
     private CreditsInfo currentMonthUsage;
 
-    private final OffsetDateTime createdAt = Instant.now().atOffset(ZoneOffset.UTC);
+    private final OffsetDateTime createdAt = Instant.now()
+            .atOffset(DEFAULT_ZONE_OFFSET);
 }

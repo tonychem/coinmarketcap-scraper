@@ -11,6 +11,8 @@ import lombok.ToString;
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 
+import static utils.ApplicationConstantHolder.DEFAULT_DATETIME_PATTERN;
+
 /**
  * Последняя информация о стоимости валюты + изменения за периоды
  */
@@ -35,6 +37,6 @@ public class QuoteInfo {
     private BigDecimal monthlyPriceChangeInPercent;
 
     @JsonProperty(value = "last_updated")
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ssZZ")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = DEFAULT_DATETIME_PATTERN)
     private OffsetDateTime lastUpdated;
 }

@@ -3,11 +3,18 @@ elasticsearch:
   host: "localhost"
   port: 9200
 
+tomcat:
+  host: "localhost"
+  port: 8080
+
 credentials:
-  - "<CRED1>"
-  - "<CRED2>"
-  - "<CRED3>"
+  - "<CREDENTIAL1>"
+  - "<CREDENTIAL2>"
+
 task:
   symbols:
     - "<SYMBOL1>"
     - "<SYMBOL2>"
+    - "<SYMBOL3>"
+    - "<SYMBOL4>"
+    - "<SYMBOL5>"

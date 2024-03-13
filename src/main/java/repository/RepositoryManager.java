@@ -2,16 +2,19 @@ package repository;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.elasticsearch._types.mapping.*;
+import co.elastic.clients.elasticsearch.core.IndexResponse;
 import co.elastic.clients.elasticsearch.indices.CreateIndexRequest;
 import co.elastic.clients.transport.endpoints.BooleanResponse;
+import model.CryptocurrencyInfo;
 
 import java.io.IOException;
+
+import static utils.ApplicationConstantHolder.DEFAULT_DATETIME_PATTERN;
 
 /**
  * Класс для DDL операций над ES репозиторием.
  */
 public class RepositoryManager {
-    private static final String DEFAULT_DATETIME_FORMAT = "yyyy-MM-dd'T'HH:mm:ssZZ";
     private final ElasticsearchClient elasticsearchClient;
 
     public RepositoryManager(ElasticsearchClient elasticsearchClient) {
@@ -20,6 +23,7 @@ public class RepositoryManager {
 
     /**
      * Проверить, существует ли заданный индекс
+     *
      * @param indexName имя индекса
      */
     public boolean checkIndexExist(String indexName) throws IOException {
@@ -29,6 +33,7 @@ public class RepositoryManager {
 
     /**
      * Создать индекс
+     *
      * @param indexName имя создаваемого индекса
      */
     public void createIndex(String indexName) throws IOException {
@@ -58,7 +63,7 @@ public class RepositoryManager {
                 .build());
         typeMappingBuilder.properties("last_updated", new Property.Builder()
                 .date(new DateProperty.Builder()
-                        .format(DEFAULT_DATETIME_FORMAT)
+                        .format(DEFAULT_DATETIME_PATTERN)
                         .build())
                 .build());
         typeMappingBuilder.properties("quote.price", new Property.Builder()
@@ -73,7 +78,7 @@ public class RepositoryManager {
                 .double_(new DoubleNumberProperty.Builder().build()).build());
         typeMappingBuilder.properties("quote.last_updated", new Property.Builder()
                 .date(new DateProperty.Builder()
-                        .format(DEFAULT_DATETIME_FORMAT)
+                        .format(DEFAULT_DATETIME_PATTERN)
                         .build()).build());
 
         createIndexRequestBuilder.index(indexName)
@@ -81,5 +86,17 @@ public class RepositoryManager {
 
         elasticsearchClient.indices()
                 .create(createIndexRequestBuilder.build());
+    }
+
+    /**
+     * Сохранить информацию о курсе криптовалюты
+     *
+     * @param indexName индекс, куда сохранять
+     * @param info      объект, несущий информацию о криптовалюте
+     */
+    public void saveCryptocurrencyInfo(String indexName, CryptocurrencyInfo info) throws IOException {
+        IndexResponse response = elasticsearchClient.index(request -> request
+                .index(indexName)
+                .document(info));
     }
 }
