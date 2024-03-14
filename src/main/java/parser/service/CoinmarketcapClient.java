@@ -1,16 +1,17 @@
-package service;
+package parser.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import exception.ApiRateLimitExceededException;
-import model.CryptocurrencyInfo;
-import model.UserUsageStatistics;
+import parser.exception.ratelimits.ApiRateLimitExceededException;
+import parser.model.CryptocurrencyInfo;
+import parser.model.UserUsageStatistics;
 import utils.entity.Credential;
 
 import java.net.http.HttpResponse;
 import java.util.Collections;
 import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Реализация клиента рынка.
@@ -26,7 +27,7 @@ public class CoinmarketcapClient {
 
     private final StatisticsManager statisticsManager;
 
-    private final Timer timer = new Timer(true);
+    private final ScheduledExecutorService timelyThreadPool;
 
     private static final long DELAY_BEFORE_FIRST_STATISTICS_UPDATE_MILLIS = 1_000 * 60 * 15;
 
@@ -39,10 +40,9 @@ public class CoinmarketcapClient {
         this.parser = parser;
         this.statisticsManager = new StatisticsManager(credential);
         httpClient = new GenericCoinmarketcapHttpClient(resourceURL);
+        timelyThreadPool = Executors.newScheduledThreadPool(1);
         scheduleStatisticsRefreshEvent();
     }
-
-    //TODO: add 4xx, 5xx response handling
 
     /**
      * Метод возвращает список информации о криптовалюте по заданному запросу.
@@ -75,14 +75,11 @@ public class CoinmarketcapClient {
     }
 
     private void scheduleStatisticsRefreshEvent() {
-        TimerTask refreshTask = new TimerTask() {
-            @Override
-            public void run() {
-                statisticsManager.refreshStatistics();
-            }
+        Runnable refreshTask = () -> {
+            statisticsManager.refreshStatistics();
         };
 
-        timer.scheduleAtFixedRate(refreshTask, DELAY_BEFORE_FIRST_STATISTICS_UPDATE_MILLIS,
-                STATISTICS_UPDATE_EVENT_PERIOD_MILLIS);
+        timelyThreadPool.scheduleAtFixedRate(refreshTask, DELAY_BEFORE_FIRST_STATISTICS_UPDATE_MILLIS,
+                STATISTICS_UPDATE_EVENT_PERIOD_MILLIS, TimeUnit.MILLISECONDS);
     }
 }

@@ -1,8 +1,8 @@
-package service;
+package parser.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import model.UserUsageStatistics;
+import parser.model.UserUsageStatistics;
 import utils.entity.Credential;
 
 import java.net.http.HttpResponse;
@@ -29,12 +29,12 @@ public class UserUsageStatisticGatherer {
                 String statisticsObjectAsString = root.at("/data/usage").toString();
                 UserUsageStatistics statistics = objectMapper.readValue(statisticsObjectAsString, UserUsageStatistics.class);
                 return statistics;
+            } else {
+                throw new RuntimeException("При получении статистики клиента была получена ошибка: "
+                        + response.statusCode() + ". Тело ответа: " + response.body());
             }
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-
-        //TODO: dummy
-        throw new RuntimeException();
     }
 }

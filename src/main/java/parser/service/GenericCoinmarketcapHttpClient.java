@@ -1,4 +1,4 @@
-package service;
+package parser.service;
 
 import utils.entity.Credential;
 

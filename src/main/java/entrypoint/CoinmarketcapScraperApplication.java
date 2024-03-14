@@ -1,10 +1,11 @@
 package entrypoint;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.catalina.startup.Tomcat;
-import repository.ElasticsearchClientFactory;
-import repository.RepositoryManager;
-import service.CoinmarketcapClientPool;
-import service.ParsingProcessor;
+import parser.repository.ElasticsearchClientFactory;
+import parser.repository.RepositoryManager;
+import parser.service.CoinmarketcapClientPool;
+import parser.service.ParsingProcessor;
 import utils.ApplicationConstantHolder;
 import utils.PropertyFileReader;
 import webapi.repository.CryptocurrencyInfoRepository;
@@ -16,6 +17,7 @@ import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+@Slf4j
 public class CoinmarketcapScraperApplication {
     public static void main(String[] args) throws IOException {
         ApplicationConstantHolder applicationConstants = PropertyFileReader.readConstants();
@@ -24,18 +26,26 @@ public class CoinmarketcapScraperApplication {
 
         CryptocurrencyInfoRepository repo = new CryptocurrencyInfoRepository(elasticsearchClientFactory.getUnsecuredClient());
         RepositoryManager repoManager = new RepositoryManager(elasticsearchClientFactory.getUnsecuredClient());
-
         CryptocurrencyWebService webService = new CryptocurrencyWebService(repo, applicationConstants);
 
-        Tomcat tomcat = new Tomcat();
-        TomcatRunner tomcatRunner = new TomcatRunner(tomcat, applicationConstants.getTomcatUrl());
-        tomcatRunner.registerServlet(new AveragePriceServlet(webService));
-        tomcatRunner.registerServlet(new MaximumDailyPriceChangeServlet(webService));
-        ExecutorService service = Executors.newFixedThreadPool(2);
-        service.execute(tomcatRunner);
+        ExecutorService service = Executors.newSingleThreadExecutor();
 
-        CoinmarketcapClientPool pool = new CoinmarketcapClientPool(applicationConstants.getCredentials());
-        ParsingProcessor processor = new ParsingProcessor(pool, repoManager);
-        processor.start(applicationConstants.getSymbols());
+        try {
+            Tomcat tomcat = new Tomcat();
+            TomcatRunner tomcatRunner = new TomcatRunner(tomcat, applicationConstants.getTomcatUrl());
+            tomcatRunner.registerServlet(new AveragePriceServlet(webService));
+            tomcatRunner.registerServlet(new MaximumDailyPriceChangeServlet(webService));
+            service.execute(tomcatRunner);
+
+            CoinmarketcapClientPool pool = new CoinmarketcapClientPool(applicationConstants.getCredentials());
+            ParsingProcessor processor = new ParsingProcessor(pool, repoManager);
+            processor.start(applicationConstants.getSymbols());
+        } catch (RuntimeException runtimeException) {
+            log.warn("Runtime exception: {}", runtimeException.toString());
+        } catch (Exception exception) {
+            log.error("Exception: {}", exception.toString());
+        }
+
+        service.shutdown();
     }
 }

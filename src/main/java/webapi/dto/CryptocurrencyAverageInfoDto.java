@@ -7,7 +7,7 @@ import java.math.BigDecimal;
 public record CryptocurrencyAverageInfoDto(
         @JsonProperty("symbol")
         String symbol,
-        @JsonProperty("average_value")
+        @JsonProperty("average_value_usd")
         BigDecimal averageValue,
-        @JsonProperty("points_calculated")
+        @JsonProperty("points_included")
         int period) {}

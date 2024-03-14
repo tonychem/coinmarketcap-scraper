@@ -29,28 +29,78 @@ public class PropertyFileReader {
         Map<String, Object> elasticsearchProperties = (Map<String, Object>) properties.get("elasticsearch");
 
         if (elasticsearchProperties.get("host") != null) {
-            constantBuilder.elasticsearchHost((String) elasticsearchProperties.get("host"));
+            String elasticsearchHost = (String) elasticsearchProperties.get("host");
+
+            if (elasticsearchHost.matches("\\$\\{\\w+:\\w+\\}")) {
+                constantBuilder.elasticsearchHost(
+                        getProperty(elasticsearchHost.substring(2, elasticsearchHost.length() - 1))
+                );
+            } else {
+                constantBuilder.elasticsearchHost(elasticsearchHost);
+            }
         }
 
         if (elasticsearchProperties.get("port") != null) {
-            constantBuilder.elasticsearchPort((int) elasticsearchProperties.get("port"));
+            String elasticsearchPortString = elasticsearchProperties.get("port").toString();
+
+            if (elasticsearchPortString.matches("\\$\\{\\w+:\\w+\\}")) {
+                constantBuilder.elasticsearchPort(
+                        Integer.parseInt(getProperty(elasticsearchPortString.substring(2, elasticsearchPortString.length() - 1)))
+                );
+            } else {
+                constantBuilder.elasticsearchPort(Integer.parseInt(elasticsearchPortString));
+            }
         }
 
         if (elasticsearchProperties.get("scheme") != null) {
-            constantBuilder.elasticsearchScheme((String) elasticsearchProperties.get("scheme"));
+            String elasticsearchScheme = (String) elasticsearchProperties.get("scheme");
+
+            if (elasticsearchScheme.matches("\\$\\{\\w+:\\w+\\}")) {
+                constantBuilder.elasticsearchScheme(
+                        getProperty(elasticsearchScheme.substring(2, elasticsearchScheme.length() - 1))
+                );
+            } else {
+                constantBuilder.elasticsearchScheme(elasticsearchScheme);
+            }
         }
 
         Map<String, Object> tomcatProperties = (Map<String, Object>) properties.get("tomcat");
 
         if (tomcatProperties.get("host") != null) {
-            constantBuilder.tomcatHost((String) tomcatProperties.get("host"));
+            String tomcatHost = (String) tomcatProperties.get("host");
+
+            if (tomcatHost.matches("\\$\\{\\w+:\\w+\\}")) {
+                constantBuilder.tomcatHost(
+                        getProperty(tomcatHost.substring(2, tomcatHost.length() - 1))
+                );
+            } else {
+                constantBuilder.tomcatHost(tomcatHost);
+            }
         }
 
         if (tomcatProperties.get("port") != null) {
-            constantBuilder.tomcatPort((int) tomcatProperties.get("port"));
+            String tomcatPortString = tomcatProperties.get("port").toString();
+
+            if (tomcatPortString.matches("\\$\\{\\w+:\\w+\\}")) {
+                constantBuilder.tomcatPort(
+                        Integer.parseInt(getProperty(tomcatPortString.substring(2, tomcatPortString.length() - 1)))
+                );
+            } else {
+                constantBuilder.tomcatPort(Integer.parseInt(tomcatPortString));
+            }
         }
 
         return constantBuilder.build();
+    }
+
+    private static String getProperty(String pair) {
+        String[] splittedString = pair.split(":");
+
+        if (System.getProperty(splittedString[0]) != null) {
+            return System.getProperty(splittedString[0]);
+        }
+
+        return splittedString[1];
     }
 
     private static Map<String, Object> load(String path) {

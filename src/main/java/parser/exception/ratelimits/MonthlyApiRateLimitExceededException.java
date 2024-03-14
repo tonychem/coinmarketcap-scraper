@@ -1,4 +1,4 @@
-package exception;
+package parser.exception.ratelimits;
 
 public class MonthlyApiRateLimitExceededException extends ApiRateLimitExceededException {
     public MonthlyApiRateLimitExceededException() {

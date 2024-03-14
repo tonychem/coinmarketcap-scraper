@@ -1,6 +1,6 @@
-package service;
+package parser.service;
 
-import model.CryptocurrencyInfo;
+import parser.model.CryptocurrencyInfo;
 
 import java.util.List;
 import java.util.concurrent.Callable;

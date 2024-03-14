@@ -4,6 +4,7 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import org.apache.catalina.Context;
 import org.apache.catalina.LifecycleException;
+import org.apache.catalina.connector.Connector;
 import org.apache.catalina.startup.Tomcat;
 import utils.entity.TomcatUrl;
 
@@ -28,10 +29,10 @@ public class TomcatRunner implements Runnable {
     public void run() {
         tomcat.setPort(tomcatUrl.port());
         tomcat.setHostname(tomcatUrl.hostname());
-        String appBase = ".";
-        tomcat.getHost().setAppBase(appBase);
+        tomcat.getHost().setAppBase(".");
 
-        tomcat.getConnector();
+        Connector connector = tomcat.getConnector();
+        connector.setProperty("maxThreads", "2");
 
         try {
             tomcat.start();
@@ -47,15 +48,7 @@ public class TomcatRunner implements Runnable {
         Class<?> servletClass = servlet.getClass();
         Tomcat.addServlet(context, servletClass.getSimpleName(), servlet);
         String servletPattern = servletClass.getAnnotation(WebServlet.class)
-                        .value()[0];
+                .value()[0];
         context.addServletMappingDecoded(servletPattern, servletClass.getSimpleName());
-    }
-
-    /**
-     * Остановить работу Tomcat
-     */
-    public void destroy() throws LifecycleException {
-        tomcat.stop();
-        tomcat.destroy();
     }
 }

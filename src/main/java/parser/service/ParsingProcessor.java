@@ -1,14 +1,12 @@
-package service;
+package parser.service;
 
-import model.CryptocurrencyInfo;
-import repository.RepositoryManager;
+import parser.model.CryptocurrencyInfo;
+import parser.repository.RepositoryManager;
 
 import java.io.IOException;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.concurrent.*;
 
 import static utils.ApplicationConstantHolder.INDICES_NAME_FORMAT;
@@ -22,9 +20,8 @@ public class ParsingProcessor {
 
     private final RepositoryManager repositoryManager;
 
-    private final ExecutorService executorService;
-
-    private final Timer timer = new Timer(true);
+    private final ExecutorService workerThreadPool;
+    private final ScheduledExecutorService repeatedTasksThreadPool;
 
     private final CopyOnWriteArrayList<CryptocurrencyInfo> resultList;
 
@@ -45,8 +42,9 @@ public class ParsingProcessor {
     public ParsingProcessor(CoinmarketcapClientPool clientPool, RepositoryManager repositoryManager) {
         this.clientPool = clientPool;
         this.repositoryManager = repositoryManager;
-        executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors() / 2 + 1);
+        workerThreadPool = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors() / 2 + 1);
         resultList = new CopyOnWriteArrayList<>();
+        repeatedTasksThreadPool = Executors.newScheduledThreadPool(2);
     }
 
     /**
@@ -64,22 +62,18 @@ public class ParsingProcessor {
             throw new IllegalStateException("Список тикеров для отслеживания пуст или null.");
         }
 
-        TimerTask parsingTask = new TimerTask() {
-            @Override
-            public void run() {
-                executeParsing(symbols);
-            }
+        Runnable parsingTask = () -> {
+            executeParsing(symbols);
         };
 
-        TimerTask saverTask = new TimerTask() {
-            @Override
-            public void run() {
-                flushLatestResult();
-            }
+        Runnable saverTask = () -> {
+            flushLatestResult();
         };
 
-        timer.scheduleAtFixedRate(parsingTask, 0, TASK_REFRESH_PERIOD);
-        timer.scheduleAtFixedRate(saverTask, TASK_REFRESH_PERIOD / 2, TASK_REFRESH_PERIOD);
+        repeatedTasksThreadPool.scheduleAtFixedRate(parsingTask, 0, TASK_REFRESH_PERIOD, TimeUnit.MILLISECONDS);
+        repeatedTasksThreadPool.scheduleAtFixedRate(saverTask, TASK_REFRESH_PERIOD / 2,
+                TASK_REFRESH_PERIOD, TimeUnit.MILLISECONDS);
+
         hasStarted = true;
     }
 
@@ -139,7 +133,7 @@ public class ParsingProcessor {
             for (DynamicParameterQuery currentQuery : queries) {
                 CoinmarketcapClient currentClient = clientPool.getClient();
 
-                Future<List<CryptocurrencyInfo>> futureCryptocurrencyList = executorService.submit(
+                Future<List<CryptocurrencyInfo>> futureCryptocurrencyList = workerThreadPool.submit(
                         new ClientTask(currentClient, currentQuery)
                 );
 
@@ -158,7 +152,7 @@ public class ParsingProcessor {
                 int queriesToAdd = clientCount < plusOneTaskWorkers - 1 ? minTaskAmount + 1 : minTaskAmount;
 
                 for (int i = 0; i < queriesToAdd; i++) {
-                    Future<List<CryptocurrencyInfo>> futureCryptocurrencyList = executorService.submit(
+                    Future<List<CryptocurrencyInfo>> futureCryptocurrencyList = workerThreadPool.submit(
                             new ClientTask(client, queries[queryArrayIndex++])
                     );
                     futureResultList.add(futureCryptocurrencyList);
@@ -178,13 +172,9 @@ public class ParsingProcessor {
         List<CryptocurrencyInfo> infos = new ArrayList<>();
 
         for (Future<List<CryptocurrencyInfo>> singleFutureResultList : futureList) {
-            infos.addAll(singleFutureResultList.get(30, TimeUnit.SECONDS));
+            infos.addAll(singleFutureResultList.get(TASK_REFRESH_PERIOD / 4, TimeUnit.MILLISECONDS));
         }
         return infos;
-    }
-
-    public List<CryptocurrencyInfo> getLatestResultSet() {
-        return new ArrayList<>(resultList);
     }
 
     /**

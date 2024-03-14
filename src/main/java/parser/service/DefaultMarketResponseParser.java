@@ -1,4 +1,4 @@
-package service;
+package parser.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -9,9 +9,9 @@ import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.ParseContext;
 import com.jayway.jsonpath.spi.json.JacksonJsonNodeJsonProvider;
 import com.jayway.jsonpath.spi.mapper.JacksonMappingProvider;
-import exception.*;
-import model.CryptocurrencyInfo;
-import model.QuoteInfo;
+import parser.exception.ratelimits.*;
+import parser.model.CryptocurrencyInfo;
+import parser.model.QuoteInfo;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -63,10 +63,8 @@ public class DefaultMarketResponseParser {
             throw new MinuteApiRateLimitExceededException("Minute rate limit exceeded");
         } else if (fineStatusCode == 1009) {
             throw new DailyApiRateLimitExceededException("Daily rate limit exceeded");
-
         } else if (fineStatusCode == 1010) {
             throw new MonthlyApiRateLimitExceededException("Monthly rate limit exceeded");
-
         } else if (fineStatusCode == 1011) {
             throw new IPApiRateLimitExceededException("IP rate limit exceeded");
         }

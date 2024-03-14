@@ -1,6 +1,6 @@
 package webapi.service;
 
-import model.CryptocurrencyInfo;
+import parser.model.CryptocurrencyInfo;
 import utils.ApplicationConstantHolder;
 import webapi.dto.Averages;
 import webapi.dto.CryptocurrencyAverageInfoDto;

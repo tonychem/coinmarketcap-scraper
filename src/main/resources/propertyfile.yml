@@ -1,11 +1,11 @@
 elasticsearch:
-  scheme: "http"
-  host: "localhost"
-  port: 9200
+  scheme: "${DOCKER_ENV:http}"
+  host: "${DOCKER_ENV:localhost}"
+  port: "${DOCKER_ENV:9200}"
 
 tomcat:
-  host: "localhost"
-  port: 8080
+  host: "${DOCKER_ENV:localhost}"
+  port: "${DOCKER_ENV:8080}"
 
 credentials:
   - "<CREDENTIAL1>"

@@ -1,4 +1,4 @@
-package model;
+package parser.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -22,6 +22,6 @@ public class UserUsageStatistics {
     @JsonProperty("current_month")
     private CreditsInfo currentMonthUsage;
 
-    private final OffsetDateTime createdAt = Instant.now()
+    private OffsetDateTime createdAt = Instant.now()
             .atOffset(DEFAULT_ZONE_OFFSET);
 }

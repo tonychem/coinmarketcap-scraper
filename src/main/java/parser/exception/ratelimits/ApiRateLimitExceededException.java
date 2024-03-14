@@ -1,4 +1,4 @@
-package exception;
+package parser.exception.ratelimits;
 
 public class ApiRateLimitExceededException extends RuntimeException {
     public ApiRateLimitExceededException() {

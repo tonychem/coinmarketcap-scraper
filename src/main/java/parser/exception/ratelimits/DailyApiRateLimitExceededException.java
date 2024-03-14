@@ -1,4 +1,4 @@
-package exception;
+package parser.exception.ratelimits;
 
 public class DailyApiRateLimitExceededException extends ApiRateLimitExceededException {
     public DailyApiRateLimitExceededException() {

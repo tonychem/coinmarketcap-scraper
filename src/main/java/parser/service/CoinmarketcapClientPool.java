@@ -1,11 +1,10 @@
-package service;
+package parser.service;
 
+import parser.exception.ClientPoolEmptyException;
+import parser.exception.CredentialListAbsentException;
 import utils.entity.Credential;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.PriorityQueue;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -20,9 +19,9 @@ public class CoinmarketcapClientPool {
     private final List<Credential> credentials;
 
 
-    public CoinmarketcapClientPool(List<Credential> credentials) throws IllegalStateException {
+    public CoinmarketcapClientPool(List<Credential> credentials) throws CredentialListAbsentException {
         if (credentials == null || credentials.isEmpty()) {
-            throw new IllegalStateException("Список api-токенов пуст или null.");
+            throw new CredentialListAbsentException("Список api-токенов пуст или null.");
         }
 
         this.credentials = new ArrayList<>(credentials);
@@ -45,11 +44,13 @@ public class CoinmarketcapClientPool {
         return clientQueue.size();
     }
 
-    public CoinmarketcapClient getClient() {
-        return clientQueue.poll();
+    public CoinmarketcapClient getClient() throws ClientPoolEmptyException {
+        return Optional.ofNullable(clientQueue.poll())
+                .orElseThrow(() -> new ClientPoolEmptyException("Отсутствуют клиенты с остатком кредитов за текущий месяц"));
     }
 
     public void addClient(CoinmarketcapClient client) {
+        Objects.requireNonNull(client);
         clientQueue.offer(client);
     }
 

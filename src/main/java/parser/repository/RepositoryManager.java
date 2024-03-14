@@ -1,11 +1,11 @@
-package repository;
+package parser.repository;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.elasticsearch._types.mapping.*;
 import co.elastic.clients.elasticsearch.core.IndexResponse;
 import co.elastic.clients.elasticsearch.indices.CreateIndexRequest;
 import co.elastic.clients.transport.endpoints.BooleanResponse;
-import model.CryptocurrencyInfo;
+import parser.model.CryptocurrencyInfo;
 
 import java.io.IOException;
 

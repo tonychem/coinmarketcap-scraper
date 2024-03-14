@@ -8,6 +8,6 @@ public record MaximumDailyChangeCryptocurrencyDto(
         @JsonProperty("symbol")
         String symbol,
 
-        @JsonProperty("price_change_value")
+        @JsonProperty("price_change_percent_value")
         BigDecimal dailyPriceChange) {
 }

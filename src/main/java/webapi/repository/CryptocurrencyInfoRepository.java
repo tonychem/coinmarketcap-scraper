@@ -11,7 +11,7 @@ import co.elastic.clients.elasticsearch._types.query_dsl.RangeQuery;
 import co.elastic.clients.elasticsearch.core.SearchResponse;
 import co.elastic.clients.elasticsearch.core.search.Hit;
 import co.elastic.clients.json.JsonData;
-import model.CryptocurrencyInfo;
+import parser.model.CryptocurrencyInfo;
 import webapi.dto.Averages;
 
 import java.io.IOException;
