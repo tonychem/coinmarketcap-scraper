@@ -75,11 +75,11 @@ public class CryptocurrencyInfoRepository {
         );
 
         return new Averages(BigDecimal.valueOf(aggregation.aggregations().get("average-by-quote-price").avg().value()),
-                aggregation.hits().hits().size());
+                (int) aggregation.hits().total().value());
     }
 
     /**
-     * Получить последний список криптовалют.
+     * Получить список информаций о криптовалютах, содержащий наиболее последние записи о каждой паре.
      *
      * @param indexNames индексы, по которым происходит поиск
      */
@@ -95,7 +95,7 @@ public class CryptocurrencyInfoRepository {
         SearchResponse<CryptocurrencyInfo> searchResponse = elasticsearchClient.search(
                 searchRequest -> searchRequest
                         .index(Arrays.asList(indexNames))
-                        .size(1)
+                        .size(indexNames.length)
                         .sort(sortOptions), CryptocurrencyInfo.class
         );
 

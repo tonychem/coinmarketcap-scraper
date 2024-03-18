@@ -18,6 +18,9 @@ import java.util.List;
 
 import static utils.ApplicationConstantHolder.defaultObjectMapper;
 
+/**
+ * Класс по преобразованию входящих JSON в объекты программы
+ */
 public class DefaultMarketResponseParser {
 
     private static final String BASE_FIAT_CURRENCY = "USD";
@@ -39,22 +42,36 @@ public class DefaultMarketResponseParser {
                 .using(jsonPathConfiguration);
     }
 
+    /**
+     * Метод отображает JSON в список информации о криптовалютых
+     * @param json json в строковом представлении
+     * @return список криптовалют
+     * @throws JsonProcessingException
+     */
     public List<CryptocurrencyInfo> parseCurrencyInfoList(String json) throws JsonProcessingException {
         ArrayNode result = parseContext.parse(json).read("$.data.*", ArrayNode.class);
 
         List<CryptocurrencyInfo> infos = new ArrayList<>();
 
         for (JsonNode node : result) {
-            JsonNode internalArrayNode = node.get(0);
-            CryptocurrencyInfo info = objectMapper.readValue(internalArrayNode.toString(), CryptocurrencyInfo.class);
-            QuoteInfo quoteInfo = objectMapper.readValue(internalArrayNode.findPath(BASE_FIAT_CURRENCY).toString(), QuoteInfo.class);
-            info.setQuoteInfo(quoteInfo);
-            infos.add(info);
+            if (node.get(0) != null) {
+                JsonNode internalArrayNode = node.get(0);
+                CryptocurrencyInfo info = objectMapper.readValue(internalArrayNode.toString(), CryptocurrencyInfo.class);
+                QuoteInfo quoteInfo = objectMapper.readValue(internalArrayNode.findPath(BASE_FIAT_CURRENCY).toString(), QuoteInfo.class);
+                info.setQuoteInfo(quoteInfo);
+                infos.add(info);
+            }
         }
 
         return infos;
     }
 
+    /**
+     * Метод обрабатывает ошибки, полученные в виде json от сервера.
+     * @param json json в строковом представлении.
+     * @throws ApiRateLimitExceededException
+     * @throws JsonProcessingException
+     */
     public void handleRateLimitViolation(String json) throws ApiRateLimitExceededException, JsonProcessingException {
         JsonNode root = objectMapper.readTree(json);
         int fineStatusCode = root.at("/status/error_code").asInt();

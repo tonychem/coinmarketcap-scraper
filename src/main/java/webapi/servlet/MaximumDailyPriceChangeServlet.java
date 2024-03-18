@@ -13,6 +13,9 @@ import java.io.IOException;
 
 import static utils.ApplicationConstantHolder.defaultObjectMapper;
 
+/**
+ * Сервлет, обрабатывающий запросы на получение информации о криптовалюте с наибольшим процентным изменением цены за день.
+ */
 @WebServlet("/max-daily-price-change")
 public class MaximumDailyPriceChangeServlet extends HttpServlet {
 

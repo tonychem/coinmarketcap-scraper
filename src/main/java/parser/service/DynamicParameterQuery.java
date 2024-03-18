@@ -76,10 +76,18 @@ public class DynamicParameterQuery {
         }
     }
 
+    /**
+     * Получение запроса в виде строки запроса
+     * @return
+     */
     public String getQuery() {
         return query;
     }
 
+    /**
+     * Получить количество запрашивамых параметров (необходимо для расчета использования кредитов API)
+     * @return
+     */
     public int getQueriedParams() {
         return queriedParams;
     }

@@ -11,6 +11,9 @@ import java.time.OffsetDateTime;
 
 import static utils.ApplicationConstantHolder.DEFAULT_ZONE_OFFSET;
 
+/**
+ * Содержит информацию о лимитах использования для текущего токена.
+ */
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Getter
 @Setter

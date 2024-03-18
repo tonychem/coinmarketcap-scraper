@@ -16,7 +16,6 @@ import java.util.concurrent.TimeUnit;
 /**
  * Реализация клиента рынка.
  */
-
 public class CoinmarketcapClient {
 
     private final Credential credential;
@@ -58,7 +57,9 @@ public class CoinmarketcapClient {
             if (statusCode == 200) {
                 List<CryptocurrencyInfo> infosList = parser.parseCurrencyInfoList(response.body());
                 int queriedParams = query.getQueriedParams();
-                statisticsManager.decrementCreditCount(queriedParams / QUERIES_PER_CREDIT + 1);
+                int creditsUsed = queriedParams % QUERIES_PER_CREDIT == 0 ?
+                        queriedParams / QUERIES_PER_CREDIT : queriedParams / QUERIES_PER_CREDIT + 1;
+                statisticsManager.decrementCreditCount(creditsUsed);
                 return infosList;
             } else if (statusCode == 429) {
                 parser.handleRateLimitViolation(response.body());
@@ -74,6 +75,9 @@ public class CoinmarketcapClient {
         return statisticsManager.getUsageStatistics();
     }
 
+    /**
+     * Метод по запуску периодической актуализации статистики пользователя.
+     */
     private void scheduleStatisticsRefreshEvent() {
         Runnable refreshTask = () -> {
             statisticsManager.refreshStatistics();

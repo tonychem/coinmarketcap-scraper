@@ -10,6 +10,9 @@ import utils.entity.TomcatUrl;
 
 import java.nio.file.Paths;
 
+/**
+ * Задание по запуску сервера Томкат в ThreadPool-e
+ */
 public class TomcatRunner implements Runnable {
     private final TomcatUrl tomcatUrl;
     private final Tomcat tomcat;

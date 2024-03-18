@@ -9,6 +9,9 @@ import java.net.http.HttpResponse;
 
 import static utils.ApplicationConstantHolder.defaultObjectMapper;
 
+/**
+ * Класс для сбора актуальной информации о лимитах API для данного клиента.
+ */
 public class UserUsageStatisticGatherer {
     private final GenericCoinmarketcapHttpClient httpClient;
 
@@ -21,6 +24,11 @@ public class UserUsageStatisticGatherer {
         httpClient = new GenericCoinmarketcapHttpClient(KEY_INFO_URL);
     }
 
+    /**
+     * Метод для преобразования JSON объекта, содержащего информацию о лимитах пользователя в объект приложения
+     * @param credential API токен пользователя
+     * @return статистики использования api лимитов пользователя
+     */
     public UserUsageStatistics getStatistics(Credential credential) {
         try {
             HttpResponse<String> response = httpClient.executeGetRequest(DynamicParameterQuery.emptyQuery(), credential);

@@ -6,21 +6,23 @@ import parser.repository.ElasticsearchClientFactory;
 import parser.repository.RepositoryManager;
 import parser.service.CoinmarketcapClientPool;
 import parser.service.ParsingProcessor;
-import utils.ApplicationConstantHolder;
 import utils.PropertyFileReader;
+import utils.PropertyHolder;
 import webapi.repository.CryptocurrencyInfoRepository;
 import webapi.service.CryptocurrencyWebService;
 import webapi.servlet.AveragePriceServlet;
 import webapi.servlet.MaximumDailyPriceChangeServlet;
 
-import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+/**
+ * Точка входа в приложение
+ */
 @Slf4j
 public class CoinmarketcapScraperApplication {
-    public static void main(String[] args) throws IOException {
-        ApplicationConstantHolder applicationConstants = PropertyFileReader.readConstants();
+    public static void main(String[] args) {
+        PropertyHolder applicationConstants = PropertyFileReader.readConstants();
         ElasticsearchClientFactory elasticsearchClientFactory
                 = new ElasticsearchClientFactory(applicationConstants.getElasticsearchDataSource());
 
@@ -45,7 +47,5 @@ public class CoinmarketcapScraperApplication {
         } catch (Exception exception) {
             log.error("Exception: {}", exception.toString());
         }
-
-        service.shutdown();
     }
 }

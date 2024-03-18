@@ -6,6 +6,9 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
+/**
+ * Содержит информацию о количестве сделанных/оставшихся запросов за последнюю минуту
+ */
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Getter
 @Setter

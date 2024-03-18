@@ -49,7 +49,7 @@ public class ParsingProcessor {
 
     /**
      * Публичный метод, запускающий процесс сбора информации. Декорирует запуск таймера с набором инструкций
-     * executeParsing
+     * executeParsing и flushLatestResult.
      *
      * @param symbols список символов криптовалют
      */
@@ -83,7 +83,7 @@ public class ParsingProcessor {
      *
      * @param symbols список символов криптовалют
      */
-    private void executeParsing(String... symbols) {
+    public void executeParsing(String... symbols) {
         try {
             resultList.clear();
             clientPool.removeExpiredClients();
@@ -97,6 +97,9 @@ public class ParsingProcessor {
         }
     }
 
+    /**
+     * Набор инструкций для сохранения последних сохраненных записей о курсах криптовалют, собранных клиентами.
+     */
     private void flushLatestResult() {
         try {
             for (CryptocurrencyInfo info : resultList) {
@@ -141,17 +144,15 @@ public class ParsingProcessor {
                 futureResultList.add(futureCryptocurrencyList);
             }
         } else {
-            int minTaskAmount = symbols.length / clientPool.getPoolSize();
-            int plusOneTaskWorkers = symbols.length % clientPool.getPoolSize();
-            int clientCount = 0;
+            int minTaskAmount = queries.length / clientPool.getPoolSize();
+            int tasksLeftToDelegate = queries.length % clientPool.getPoolSize();
 
-            CoinmarketcapClient client = clientPool.getClient();
+            //добавляем минимальное количество заданий на все клиенты
             int queryArrayIndex = 0;
-
-            while (queryArrayIndex < queries.length) {
-                int queriesToAdd = clientCount < plusOneTaskWorkers - 1 ? minTaskAmount + 1 : minTaskAmount;
-
-                for (int i = 0; i < queriesToAdd; i++) {
+            int clientPoolSize = clientPool.getPoolSize();
+            while (clientPoolSize > 0) {
+                CoinmarketcapClient client = clientPool.getClient();
+                for (int i = 0; i < minTaskAmount; i++) {
                     Future<List<CryptocurrencyInfo>> futureCryptocurrencyList = workerThreadPool.submit(
                             new ClientTask(client, queries[queryArrayIndex++])
                     );
@@ -159,14 +160,32 @@ public class ParsingProcessor {
                 }
 
                 clientPool.addClient(client);
-                client = clientPool.getClient();
-                clientCount++;
+                clientPoolSize--;
+            }
+
+            //добавляем остаток, по одному на каждый клиент
+            while (tasksLeftToDelegate > 0) {
+                CoinmarketcapClient client = clientPool.getClient();
+                Future<List<CryptocurrencyInfo>> futureCryptocurrencyList = workerThreadPool.submit(
+                        new ClientTask(client, queries[queryArrayIndex++])
+                );
+                futureResultList.add(futureCryptocurrencyList);
+                clientPool.addClient(client);
+                tasksLeftToDelegate--;
             }
         }
 
         return futureResultList;
     }
 
+    /**
+     * Метод распаковывает фьючерсы информации о криптовалютах в соответствующий список
+     * @param futureList список фьючерсов
+     * @return список информации о криптовалютах
+     * @throws ExecutionException
+     * @throws InterruptedException
+     * @throws TimeoutException
+     */
     private List<CryptocurrencyInfo> collectParsedInfo(List<Future<List<CryptocurrencyInfo>>> futureList)
             throws ExecutionException, InterruptedException, TimeoutException {
         List<CryptocurrencyInfo> infos = new ArrayList<>();
@@ -183,7 +202,7 @@ public class ParsingProcessor {
      *
      * @param symbols список символов криптовалют
      */
-    public DynamicParameterQuery[] queryBySymbols(String... symbols) {
+    private DynamicParameterQuery[] queryBySymbols(String... symbols) {
         int dynamicQueryArraySize = symbols.length % SYMBOLS_PER_CLIENT == 0 ?
                 symbols.length / SYMBOLS_PER_CLIENT : symbols.length / SYMBOLS_PER_CLIENT + 1;
 

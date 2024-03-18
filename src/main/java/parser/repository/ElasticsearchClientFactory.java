@@ -20,6 +20,10 @@ public class ElasticsearchClientFactory {
         this.dataSource = dataSource;
     }
 
+    /**
+     * Метод, возвращающий незащищенного ES клиента (отсутствует сертификат SSL и шифрование)
+     * @return клиент Elasticsearch
+     */
     public ElasticsearchClient getUnsecuredClient() {
         RestClient restClient = RestClient
                 .builder(new HttpHost(dataSource.host(), dataSource.port(), dataSource.scheme()))

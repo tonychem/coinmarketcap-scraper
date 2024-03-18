@@ -1,6 +1,5 @@
 package parser.service;
 
-import lombok.extern.slf4j.Slf4j;
 import parser.exception.ratelimits.ApiRateLimitExceededException;
 import parser.exception.ratelimits.MinuteApiRateLimitExceededException;
 import parser.exception.ratelimits.MonthlyApiRateLimitExceededException;
@@ -15,7 +14,9 @@ import java.time.temporal.ChronoUnit;
 
 import static utils.ApplicationConstantHolder.DEFAULT_ZONE_OFFSET;
 
-@Slf4j
+/**
+ * Класс - менеджер, отслеживающий и кэширующий информацию о состоянии лимитов API для данного клиента.
+ */
 public class StatisticsManager {
     private static final int API_MINUTE_RATE_LIMIT = 30;
     private static final int API_MONTH_RATE_LIMIT = 10_000;
@@ -34,12 +35,23 @@ public class StatisticsManager {
         lastUpdated = usageStatistics.getCreatedAt();
     }
 
+    /**
+     * Управление минутными и месячными счетчиками лимитов.
+     * @param credits количество кредитов, которое необходимо списать
+     * @throws ApiRateLimitExceededException
+     */
     public synchronized void decrementCreditCount(int credits) throws ApiRateLimitExceededException {
         manageMonthlyCreditCounter(credits);
         manageMinuteRequestCounter();
         usageStatistics.setCreatedAt(Instant.now().atOffset(DEFAULT_ZONE_OFFSET));
     }
 
+    /**
+     * Метод для управления минутным счетчиком лимитов. Уменьшает количество доступных запросов на 1, если
+     * метод уже был вызван в последнюю минуту. Сбрасывает лимиты, если с последнего запроса прошло больше 1 минуты.
+     * Бросает исключение, если минутный лимит был превышен.
+     * @throws MinuteApiRateLimitExceededException
+     */
     private void manageMinuteRequestCounter() throws MinuteApiRateLimitExceededException {
         OffsetDateTime currentMoment = Instant.now()
                 .atOffset(DEFAULT_ZONE_OFFSET);
@@ -61,6 +73,13 @@ public class StatisticsManager {
         currentMinuteUsage.setRequestsLeft(--prevRequestsLeftCount);
     }
 
+    /**
+     * Метод для управления месячным счетчиком лимитов. Если между текущим и последним запросом прошло больше 1 месяца,
+     * счетчик восстаналивает значения лимитов. Счетчик уменьшает количество доступных кредитов на значение credits, если
+     * прошло меньше 1 месяца. Выбрасывает исключение, если отсутствуют досутпные запросы.
+     * @param credits количество кредитов для списания
+     * @throws ApiRateLimitExceededException
+     */
     private void manageMonthlyCreditCounter(int credits) throws ApiRateLimitExceededException {
         OffsetDateTime currentMoment = Instant.now().atOffset(DEFAULT_ZONE_OFFSET);
 
@@ -86,6 +105,9 @@ public class StatisticsManager {
         monthlyUsage.setCreditsLeft(newCreditsLeftCount);
     }
 
+    /**
+     * Метод для получения информации о лимитах с сервера. (актуализация кэш-данных)
+     */
     public synchronized void refreshStatistics() {
         usageStatistics = userUsageStatisticGatherer.getStatistics(credential);
         lastUpdated = usageStatistics.getCreatedAt();

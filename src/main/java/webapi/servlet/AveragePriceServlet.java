@@ -13,7 +13,10 @@ import java.io.IOException;
 
 import static utils.ApplicationConstantHolder.defaultObjectMapper;
 
-@WebServlet("/hour-average")
+/**
+ * Сервлет, обрабатывающий расчет среднего значения криптовалюты.
+ */
+@WebServlet("/average")
 public class AveragePriceServlet extends HttpServlet {
     private final CryptocurrencyWebService webService;
 

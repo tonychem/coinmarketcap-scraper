@@ -7,6 +7,9 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 
+/**
+ * Обертка над Java Http клиентом для работы с Coinmarketcap API
+ */
 public class GenericCoinmarketcapHttpClient {
 
     private static final String MARKET_HOST_URL = "https://pro-api.coinmarketcap.com";
@@ -19,6 +22,12 @@ public class GenericCoinmarketcapHttpClient {
         httpClient = HttpClient.newHttpClient();
     }
 
+    /**
+     * Метод для доставки Http запроса на сервер.
+     * @param query пользовательский запрос
+     * @param credential api токен клиента
+     * @return Http запрос в строковом представлении
+     */
     public HttpResponse<String> executeGetRequest(DynamicParameterQuery query, Credential credential) {
         try {
             HttpRequest request = createRequest(query, credential);

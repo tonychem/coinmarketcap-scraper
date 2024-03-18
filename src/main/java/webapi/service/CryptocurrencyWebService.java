@@ -1,7 +1,7 @@
 package webapi.service;
 
 import parser.model.CryptocurrencyInfo;
-import utils.ApplicationConstantHolder;
+import utils.PropertyHolder;
 import webapi.dto.Averages;
 import webapi.dto.CryptocurrencyAverageInfoDto;
 import webapi.dto.MaximumDailyChangeCryptocurrencyDto;
@@ -19,14 +19,17 @@ import java.util.List;
 
 import static utils.ApplicationConstantHolder.INDICES_NAME_FORMAT;
 
+/**
+ * Сервисный класс, обрабатывающий запросы контроллера.
+ */
 public class CryptocurrencyWebService {
     private final CryptocurrencyInfoRepository cryptocurrencyInfoRepository;
-    private final ApplicationConstantHolder applicationConstantHolder;
+    private final PropertyHolder propertyHolder;
 
     public CryptocurrencyWebService(CryptocurrencyInfoRepository cryptocurrencyInfoRepository,
-                                    ApplicationConstantHolder applicationConstantHolder) {
+                                    PropertyHolder propertyHolder) {
         this.cryptocurrencyInfoRepository = cryptocurrencyInfoRepository;
-        this.applicationConstantHolder = applicationConstantHolder;
+        this.propertyHolder = propertyHolder;
     }
 
     public CryptocurrencyAverageInfoDto getHourAverageForSymbol(String symbol) {
@@ -65,12 +68,13 @@ public class CryptocurrencyWebService {
 
     public MaximumDailyChangeCryptocurrencyDto getCryptocurrencyWithMaxDailyPriceChange() {
         OffsetDateTime now = Instant.now().atOffset(ZoneOffset.UTC);
-        String[] indexNames = prepareIndexNames(applicationConstantHolder.getSymbols(), now);
+        String[] indexNames = prepareIndexNames(propertyHolder.getSymbols(), now);
 
         try {
             List<CryptocurrencyInfo> recentInfos = cryptocurrencyInfoRepository.getLatestCryptocurrencyInfos(indexNames);
             Comparator<CryptocurrencyInfo> maxDailyChangeComparator
-                    = Comparator.comparing(info -> info.getQuoteInfo().getDailyPriceChangeInPercent().abs());
+                    = Comparator.comparing((CryptocurrencyInfo info) ->
+                    info.getQuoteInfo().getDailyPriceChangeInPercent().abs());
             CryptocurrencyInfo maxDailyChangeCryptocurrencyInfo = Collections.max(recentInfos, maxDailyChangeComparator);
             return new MaximumDailyChangeCryptocurrencyDto(maxDailyChangeCryptocurrencyInfo.getTicker(),
                     maxDailyChangeCryptocurrencyInfo.getQuoteInfo().getDailyPriceChangeInPercent());

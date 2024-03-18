@@ -12,7 +12,7 @@ import java.time.OffsetDateTime;
 import static utils.ApplicationConstantHolder.DEFAULT_DATETIME_PATTERN;
 
 /**
- * Информация о криптовалюте, содержащая рыночные метоаданные + последнюю информацию о стоимости валюты
+ * Информация о криптовалюте, содержащая рыночные метаданные + последнюю информацию о стоимости валюты
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Getter

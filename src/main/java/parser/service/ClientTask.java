@@ -5,6 +5,9 @@ import parser.model.CryptocurrencyInfo;
 import java.util.List;
 import java.util.concurrent.Callable;
 
+/**
+ * Задание по получению информации клиентов по заданному запросу, исполняемое в ThreadPool-e
+ */
 public class ClientTask implements Callable<List<CryptocurrencyInfo>> {
     private final CoinmarketcapClient client;
 
