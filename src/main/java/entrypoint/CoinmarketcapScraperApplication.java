@@ -30,13 +30,13 @@ public class CoinmarketcapScraperApplication {
         RepositoryManager repoManager = new RepositoryManager(elasticsearchClientFactory.getUnsecuredClient());
         CryptocurrencyWebService webService = new CryptocurrencyWebService(repo, applicationConstants);
 
-        ExecutorService service = Executors.newSingleThreadExecutor();
-
         try {
             Tomcat tomcat = new Tomcat();
             TomcatRunner tomcatRunner = new TomcatRunner(tomcat, applicationConstants.getTomcatUrl());
             tomcatRunner.registerServlet(new AveragePriceServlet(webService));
             tomcatRunner.registerServlet(new MaximumDailyPriceChangeServlet(webService));
+
+            ExecutorService service = Executors.newSingleThreadExecutor();
             service.execute(tomcatRunner);
 
             CoinmarketcapClientPool pool = new CoinmarketcapClientPool(applicationConstants.getCredentials());
