@@ -23,7 +23,7 @@ public class ParsingProcessor {
     private final ExecutorService workerThreadPool;
     private final ScheduledExecutorService repeatedTasksThreadPool;
 
-    private final CopyOnWriteArrayList<CryptocurrencyInfo> resultList;
+    private final List<CryptocurrencyInfo> resultList;
 
     private boolean hasStarted = false;
 
@@ -43,7 +43,7 @@ public class ParsingProcessor {
         this.clientPool = clientPool;
         this.repositoryManager = repositoryManager;
         workerThreadPool = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors() / 2 + 1);
-        resultList = new CopyOnWriteArrayList<>();
+        resultList = new ArrayList<>();
         repeatedTasksThreadPool = Executors.newScheduledThreadPool(2);
     }
 
@@ -126,7 +126,6 @@ public class ParsingProcessor {
      * клиент встает обратно в очередь.
      *
      * @param symbols список символов криптовалют
-     * @return
      */
     private List<Future<List<CryptocurrencyInfo>>> initiateWorkers(String... symbols) {
         DynamicParameterQuery[] queries = queryBySymbols(symbols);

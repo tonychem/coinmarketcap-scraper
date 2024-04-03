@@ -24,6 +24,7 @@
         <jakarta.servlet.version>6.0.0</jakarta.servlet.version>
         <tomcat.version>11.0.0-M4</tomcat.version>
         <slf4j.version>2.0.12</slf4j.version>
+        <logstash-logback-encoder.version>7.4</logstash-logback-encoder.version>
     </properties>
 
     <dependencies>
@@ -69,6 +70,12 @@
             <groupId>co.elastic.clients</groupId>
             <artifactId>elasticsearch-java</artifactId>
             <version>${elasticsearch.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>net.logstash.logback</groupId>
+            <artifactId>logstash-logback-encoder</artifactId>
+            <version>${logstash-logback-encoder.version}</version>
         </dependency>
 
         <dependency>
